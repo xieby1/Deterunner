@@ -22,7 +22,7 @@
   extraCommands = ''
     # for /usr/bin/env
     mkdir usr
-    ln -s bin usr/bin
+    ln -s ../bin usr/bin
     # make sure /tmp exists
     mkdir -m 1777 tmp
     # need a HOME
