@@ -19,5 +19,9 @@
     act_runner daemon
   '';
   extraPodmanOpts = [];
-  extraPkgsInPATH = [pkgs.git];
+  extraPkgsInPATH = [
+    pkgs.git
+    # TODO: why github actions/checkout not need node?
+    pkgs.nodejs
+  ];
 }
