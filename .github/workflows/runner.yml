@@ -8,4 +8,4 @@ jobs:
     runs-on: [self-hosted, Linux, X64, nix]
     steps:
     - uses: actions/checkout@v4
-    - run: nix-build example.nix --argstr github_token github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    - run: make -j

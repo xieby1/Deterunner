@@ -13,9 +13,9 @@
 , owner ? "xieby1"
 , repo ? "Deterunner"
 }: let
-  name = "Deterunner-Example";
-  runner = import ./. {
-    inherit pkgs;
+  name = "GitHub-Deterunner-Example";
+  gh-runner = pkgs.callPackage ./. {
+    runner = pkgs.github-runner;
     extraConfigOpts = [
       "--labels 'self-hosted,Linux,X64,nix'"
       "--ephemeral"
@@ -33,5 +33,5 @@ in pkgs.writeShellScript name ''
     Https://api.github.com/repos/${owner}/${repo}/actions/runners/registration-token)
   # https://unix.stackexchange.com/questions/13466/can-grep-output-only-specified-groupings-that-match
   runner_token=$(echo $resp | grep -oP '"token":\s*"\K[^"]*')
-  ${runner} --token $runner_token
+  ${gh-runner} --token $runner_token
 ''
