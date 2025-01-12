@@ -14,15 +14,20 @@
 , repo ? "Deterunner"
 }: let
   name = "GitHub-Deterunner-Example";
-  gh-runner = let
-    extraConfigOpts = [
-      "--labels 'self-hosted,Linux,X64,nix'"
-      "--ephemeral"
-      "--url https://github.com/${owner}/${repo}"
-    ];
-  in pkgs.callPackage ./. {
+  gh-runner = pkgs.callPackage ./. {
     runner = pkgs.github-runner;
-    runner_sh = builtins.toFile "runner.sh" ''
+    runner_sh = let
+      configCmd = [
+        "config.sh"
+        "--disableupdate"
+        "--unattended"
+        "--name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S)"
+        "--labels 'self-hosted,Linux,X64,nix'"
+        "--ephemeral"
+        "--url https://github.com/${owner}/${repo}"
+        "$@"
+      ];
+    in builtins.toFile "runner.sh" ''
       export RUNNER_ALLOW_RUNASROOT=1
 
       # clean on exit
@@ -31,10 +36,8 @@
 
       cd /root
       # start
-      config="config.sh --disableupdate --unattended --name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S) ${builtins.concatStringsSep " " extraConfigOpts} $@"
-      echo $config
-      eval $config
-
+      echo ${toString configCmd}
+      ${toString configCmd}
       run.sh
     '';
     extraPodmanOpts = [];
