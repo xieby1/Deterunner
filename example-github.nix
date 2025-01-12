@@ -14,13 +14,29 @@
 , repo ? "Deterunner"
 }: let
   name = "GitHub-Deterunner-Example";
-  gh-runner = pkgs.callPackage ./. {
-    runner = pkgs.github-runner;
+  gh-runner = let
     extraConfigOpts = [
       "--labels 'self-hosted,Linux,X64,nix'"
       "--ephemeral"
       "--url https://github.com/${owner}/${repo}"
     ];
+  in pkgs.callPackage ./. {
+    runner = pkgs.github-runner;
+    runner_sh = builtins.toFile "runner.sh" ''
+      export RUNNER_ALLOW_RUNASROOT=1
+
+      # clean on exit
+      tokenCmd=$(echo "$@" | grep -o -- '--token[ ]*[^ ]*')
+      trap "config.sh remove $tokenCmd" EXIT
+
+      cd /root
+      # start
+      config="config.sh --disableupdate --unattended --name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S) ${builtins.concatStringsSep " " extraConfigOpts} $@"
+      echo $config
+      eval $config
+
+      run.sh
+    '';
     extraPodmanOpts = [];
     extraPkgsInPATH = [pkgs.git];
   };

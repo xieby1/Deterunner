@@ -16,26 +16,11 @@
 , gnumake
 
 , runner
-, extraConfigOpts ? []
+, runner_sh
 , extraPodmanOpts ? []
 , extraPkgsInPATH ? []
 }: let
   container = callPackage ./mini-container.nix {};
-  cmds = builtins.toFile "cmds" ''
-    export RUNNER_ALLOW_RUNASROOT=1
-
-    # clean on exit
-    tokenCmd=$(echo "$@" | grep -o -- '--token[ ]*[^ ]*')
-    trap "config.sh remove $tokenCmd" EXIT
-
-    cd /root
-    # start
-    config="config.sh --disableupdate --unattended --name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S) ${builtins.concatStringsSep " " extraConfigOpts} $@"
-    echo $config
-    eval $config
-
-    run.sh
-  '';
   pkgsInPATH = [
     runner
     nix
@@ -59,7 +44,7 @@ in writeShellScript "runner-nix" ''
     -it
     ${builtins.concatStringsSep " " extraPodmanOpts}
     "$fullName"
-    /bin/sh ${cmds} $@
+    /bin/sh ${runner_sh} $@
   )
   echo "${podman}/bin/podman run ''${OPTS[@]}"
   eval "${podman}/bin/podman run ''${OPTS[@]}"
