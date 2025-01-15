@@ -6,11 +6,16 @@
   # There are two places where we need to configure the runner timeout:
   # 1. Gitea instance configure: custom/conf/app.ini: ENDLESS_TASK_TIMEOUT
   # 2. Runner instance configure: the yaml below: timeout
-  config_yml = pkgs.runCommand "gitea-runner-config.yml" {} ''
-    ${pkgs.gitea-actions-runner}/bin/act_runner generate-config > $out
-    sed -i 's/\<timeout:.*$/timeout: 72h/' $out
-    sed -i '/^  labels:/,/^$/c\  labels: []\n' $out
-  '';
+  default-config = builtins.fromJSON (builtins.readFile (
+    pkgs.runCommand "default-config.json" {
+      nativeBuildInputs = with pkgs; [ gitea-actions-runner remarshal ];
+    } "act_runner generate-config | yaml2json > $out"
+  ));
+  custom-config = pkgs.lib.recursiveUpdate default-config {
+    runner.timeout = "72h";
+    runner.labels = [];
+  };
+  config_yml = (pkgs.formats.yaml {}).generate "runner-config.yml" custom-config;
 in pkgs.callPackage ./. {
   runner = pkgs.gitea-actions-runner;
   runner_sh = let
