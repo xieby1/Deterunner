@@ -29,10 +29,15 @@ in pkgs.callPackage ./. {
       "--config ${config_yml}"
       "$@"
     ];
+    daemonCmd = [
+      "act_runner daemon"
+      "--config ${config_yml}"
+    ];
   in pkgs.writeText "runner.sh" ''
     echo ${toString registerCmd}
     ${toString registerCmd}
-    act_runner daemon
+    echo ${toString daemonCmd}
+    ${toString daemonCmd}
   '';
   extraPodmanOpts = [];
   extraPkgsInPATH = [
