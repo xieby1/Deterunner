@@ -14,14 +14,15 @@
 , repo ? "Deterunner"
 }: let
   name = "GitHub-Deterunner-Example";
-  gh-runner = pkgs.callPackage ./. {
+  gh-runner = pkgs.callPackage ./. rec {
+    containerName = "$HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S)";
     runner = pkgs.github-runner;
     runner_sh = let
       configCmd = [
         "config.sh"
         "--disableupdate"
         "--unattended"
-        "--name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S)"
+        "--name ${containerName}"
         "--labels 'self-hosted,Linux,X64,nix'"
         "--ephemeral"
         "--url https://github.com/${owner}/${repo}"

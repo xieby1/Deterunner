@@ -15,6 +15,7 @@
 , podman
 , gnumake
 
+, containerName
 , runner
 , runner_sh
 , extraPodmanOpts ? []
@@ -27,9 +28,9 @@
     gnumake
   ] ++ extraPkgsInPATH;
 in writeShellScript "runner-nix" ''
-  fullName=localhost/${container.imageName}:${container.imageTag}
+  fullImageName=localhost/${container.imageName}:${container.imageTag}
   # check whether image has been loaded
-  ${podman}/bin/podman images $fullName | grep ${container.imageName} | grep ${container.imageTag} &> /dev/null
+  ${podman}/bin/podman images $fullImageName | grep ${container.imageName} | grep ${container.imageTag} &> /dev/null
   # image has not been loaded, then load it
   if [[ $? != 0 ]]; then
     ${podman}/bin/podman load -i ${container}
@@ -41,9 +42,10 @@ in writeShellScript "runner-nix" ''
     --network=host
     --env-merge PATH='${lib.concatMapStrings (pkg: pkg+"/bin:") pkgsInPATH}\''${PATH}'
     -v /nix:/nix:ro
+    --name=${containerName}
     -it
     ${builtins.concatStringsSep " " extraPodmanOpts}
-    "$fullName"
+    "$fullImageName"
     /bin/sh ${runner_sh} $@
   )
   echo "${podman}/bin/podman run ''${OPTS[@]}"

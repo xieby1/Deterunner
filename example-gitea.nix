@@ -16,7 +16,8 @@
     runner.labels = [];
   };
   config_yml = (pkgs.formats.yaml {}).generate "runner-config.yml" custom-config;
-in pkgs.callPackage ./. {
+in pkgs.callPackage ./. rec {
+  containerName = "$HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S)";
   runner = pkgs.gitea-actions-runner;
   runner_sh = let
     registerCmd = [
@@ -24,7 +25,7 @@ in pkgs.callPackage ./. {
       "--no-interactive"
       "--instance '${instance}'"
       "--token ${token}"
-      "--name $HOSTNAME-$(TZ=UTC-8 date +%y%m%d%H%M%S)"
+      "--name ${containerName}"
       "--labels 'self-hosted,Linux,X64,nix'"
       "--config ${config_yml}"
       "$@"
